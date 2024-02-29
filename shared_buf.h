@@ -52,7 +52,7 @@ typedef struct {
 
 typedef struct {
   int fd;
-  void *buf;
+  const void *buf;
   size_t count;
   ssize_t res;
 } EntryWrite;

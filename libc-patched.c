@@ -35,15 +35,16 @@ int open(const char *pathname, int flags, ...) {
     int arg = va_arg(args, int);
     va_end(args);
     res = o_open(pathname, flags, arg);
+  } else {
+    res = o_open(pathname, flags);
   }
-  { res = o_open(pathname, flags); }
 
-  // printf("open: %s %d %d\n", pathname, flags, res);
   Entry entry;
   entry.type = TYPE_OPEN;
   memcpy(entry.data.open.pathname, pathname, strlen(pathname));
   entry.data.open.flags = flags;
   entry.data.open.fd = res;
+
   append_entry(&entry);
   return res;
 }
@@ -52,7 +53,12 @@ int close(int fildes) {
   if (!o_close)
     o_close = dlsym(RTLD_NEXT, "close");
   int res = o_close(fildes);
-  // printf("close: %d %d\n", fildes, res);
+
+  Entry entry;
+  entry.type = TYPE_CLOSE;
+  entry.data.close.fildes = fildes;
+
+  append_entry(&entry);
   return res;
 }
 
@@ -61,6 +67,14 @@ off_t lseek(int fildes, off_t offset, int whence) {
     o_lseek = dlsym(RTLD_NEXT, "lseek");
   off_t res = o_lseek(fildes, offset, whence);
   // printf("lseek: %d %lu %d %lu\n", fildes, offset, whence, res);
+
+  Entry entry;
+  entry.type = TYPE_LSEEK;
+  entry.data.lseek.fildes = fildes;
+  entry.data.lseek.offset = offset;
+  entry.data.lseek.whence = whence;
+
+  append_entry(&entry);
   return res;
 }
 
@@ -68,7 +82,14 @@ ssize_t read(int fd, void *buf, size_t count) {
   if (!o_read)
     o_read = dlsym(RTLD_NEXT, "read");
   ssize_t res = o_read(fd, buf, count);
-  // printf("read: %d %p %lu %lu\n", fd, buf, count, res);
+
+  Entry entry;
+  entry.type = TYPE_READ;
+  entry.data.read.fd = fd;
+  entry.data.read.buf = buf;
+  entry.data.read.count = count;
+
+  append_entry(&entry);
   return res;
 }
 
@@ -76,7 +97,15 @@ ssize_t write(int fd, const void *buf, size_t count) {
   if (!o_write)
     o_write = dlsym(RTLD_NEXT, "write");
   ssize_t res = o_write(fd, buf, count);
-  // printf("write: %d %p %lu %lu\n", fd, buf, count, res);
+
+  Entry entry;
+  entry.type = TYPE_WRITE;
+  entry.data.write.fd = fd;
+  entry.data.write.buf = buf;
+  entry.data.write.count = count;
+  entry.data.write.res = res;
+
+  append_entry(&entry);
   return res;
 }
 
@@ -90,7 +119,6 @@ void *malloc(size_t size) {
   entry.data.malloc.size = size;
   entry.data.malloc.res = res;
 
-  // doesn't work with malloc -> recursive
   append_entry(&entry);
   return res;
 }
@@ -100,11 +128,27 @@ void *realloc(void *ptr, size_t size) {
     o_realloc = dlsym(RTLD_NEXT, "realloc");
   void *prev = ptr;
   void *res = o_realloc(ptr, size);
+
+  Entry entry;
+  entry.type = TYPE_REALLOC;
+  entry.data.realloc.size = size;
+  entry.data.realloc.prev = prev;
+  entry.data.realloc.res = res;
+
+  append_entry(&entry);
+
   return res;
 }
 
 void free(void *ptr) {
   if (!o_free)
     o_free = dlsym(RTLD_NEXT, "free");
+
+  Entry entry;
+  entry.type = TYPE_FREE;
+  entry.data.free.ptr = ptr;
+
+  append_entry(&entry);
+
   o_free(ptr);
 }
