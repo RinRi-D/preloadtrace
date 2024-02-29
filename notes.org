@@ -1,0 +1,38 @@
+#+title: Notes
+
+* LD_PRELOAD???
+https://xakep.ru/2020/12/29/ld_preload-rootkit/
+This website was the most useful. I can write something like this to each syscall:
+** Code:
+*** lib.c
+#+begin_src c :noeval
+#include <dlfcn.h>
+#include <stdio.h>
+
+int (*o_open)(const char *, int oflag) = NULL;
+
+int open(const char *pathname, int oflag) {
+  if (!o_open)
+    o_open = dlsym(RTLD_NEXT, "open");
+  printf("%s", pathname);
+  return o_open(pathname, oflag);
+}
+#+end_src
+
+*** a.c
+#+begin_src c :noeval
+#include <fcntl.h>
+#include <unistd.h>
+
+int main() {
+  int fp = open("test", O_WRONLY);
+  write(fp, "asd", 3);
+}
+#+end_src
+
+** Run:
+#+begin_src bash :noeval
+gcc -Wall -fPIC -shared -o rootkit.so lib.c
+gcc -Wall a.c
+LD_PRELOAD=./rootkit.so ./a.out
+#+end_src
