@@ -11,10 +11,11 @@
 - simple daemon that prints both io and mem function calls
 ** Todo
 - clear memory
-- efficient read/write (async, IPC-based)
+- efficient read/write (async, IPC-based) and efficient sync between publisher and consumer
 - log multiple processes (multithreading probably)
 - systemd daemon
 - packaging
+- Refactoring, cleaning, make the code more modular
 * Notes
 ** LD_PRELOAD???
 https://xakep.ru/2020/12/29/ld_preload-rootkit/
