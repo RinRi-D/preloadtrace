@@ -12,7 +12,7 @@
 ** Todo
 - clear memory
 - efficient read/write (async, IPC-based)
-- log multiple proccesses (multithreading probably)
+- log multiple processes (multithreading probably)
 - systemd daemon
 - packaging
 * Notes
