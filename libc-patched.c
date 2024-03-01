@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 int (*o_open)(const char *, int oflag, ...) = NULL;
@@ -20,8 +22,24 @@ void *(*o_realloc)(void *ptr, size_t size) = NULL;
 void (*o_free)(void *ptr) = NULL;
 
 __attribute__((constructor)) static void setup(void) {
-  shared_buf_init();
-  printf("Called setup!");
+  int len;
+  pid_t pid = getpid();
+  struct stat st = {0};
+
+  if (stat("/tmp/preloadtrace", &st) == -1) {
+    mkdir("/tmp/preloadtrace", 0755);
+  }
+  char io_pathname[64] = "/tmp/preloadtrace/io-";
+
+  len = strlen(io_pathname);
+  sprintf(io_pathname + len, "%d", pid);
+
+  char mm_pathname[64] = "/tmp/preloadtrace/mm-";
+  len = strlen(mm_pathname);
+  sprintf(mm_pathname + len, "%d", pid);
+
+  shared_buf_io_init(io_pathname);
+  shared_buf_mm_init(mm_pathname);
 }
 
 int open(const char *pathname, int flags, ...) {
@@ -41,7 +59,7 @@ int open(const char *pathname, int flags, ...) {
 
   Entry entry;
   entry.type = TYPE_OPEN;
-  memcpy(entry.data.open.pathname, pathname, strlen(pathname));
+  memcpy(entry.data.open.pathname, pathname, strlen(pathname) + 1);
   entry.data.open.flags = flags;
   entry.data.open.fd = res;
 

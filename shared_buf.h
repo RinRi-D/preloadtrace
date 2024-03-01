@@ -22,6 +22,7 @@ typedef enum {
   TYPE_MALLOC,
   TYPE_REALLOC,
   TYPE_FREE,
+  TYPE_REPEAT
 } EntryType;
 
 typedef struct {
@@ -87,10 +88,11 @@ typedef struct {
   } data;
 } Entry;
 
-void shared_buf_init();
+void shared_buf_io_init(char *pathname);
+void shared_buf_mm_init(char *pathname);
 void append_entry(Entry *entry);
-Entry read_entry_from_buf();
-void dump_buf();
+Entry read_entry_from_io_buf();
+Entry read_entry_from_mm_buf();
 char *attach_memory_block(char *pathname, size_t size);
 char detach_memory_block(char *block);
 char destroy_memory_block(char *pathname);

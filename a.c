@@ -12,8 +12,10 @@ int main() {
   write(fp, "asd\n", strlen("asd\n"));
   close(fp);
   char *b = malloc(100);
-  b = realloc(b, 130);
+  char *c = malloc(100);
+  b = realloc(b, 1000);
   free(b);
+  free(c);
 
   fp = open("test.txt", O_RDONLY);
   lseek(fp, 1, SEEK_CUR);

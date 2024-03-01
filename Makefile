@@ -15,4 +15,4 @@ run:
 	LD_PRELOAD=./libc-patched.so ./a.out
 
 clean:
-	rm -f *.out *.so *.o
+	rm -f *.out *.so *.o /tmp/preloadtrace/*

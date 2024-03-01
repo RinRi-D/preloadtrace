@@ -1,10 +1,26 @@
 #+title: Notes
 
-* LD_PRELOAD???
+* Progress
+** Done
+- preload all the needed functions
+- log all of them
+- simple example (a.c)
+- simple read/write from/to circular shared memory (has problems)
+- separate memory for io and mem
+- uniform binary data structure (huge)
+- simple daemon that prints both io and mem function calls
+** Todo
+- clear memory
+- efficient read/write (async, IPC-based)
+- log multiple proccesses (multithreading probably)
+- systemd daemon
+- packaging
+* Notes
+** LD_PRELOAD???
 https://xakep.ru/2020/12/29/ld_preload-rootkit/
 This website was the most useful. I can write something like this to each syscall:
-** Code:
-*** lib.c
+*** Code:
+**** lib.c
 #+begin_src c :noeval
 #include <dlfcn.h>
 #include <stdio.h>
@@ -19,7 +35,7 @@ int open(const char *pathname, int oflag) {
 }
 #+end_src
 
-*** a.c
+**** a.c
 #+begin_src c :noeval
 #include <fcntl.h>
 #include <unistd.h>
@@ -30,7 +46,7 @@ int main() {
 }
 #+end_src
 
-** Run:
+*** Run:
 #+begin_src bash :noeval
 gcc -Wall -fPIC -shared -o rootkit.so lib.c
 gcc -Wall a.c
